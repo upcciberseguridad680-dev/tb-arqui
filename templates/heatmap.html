@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Calor - Street Web{% endblock %}
+
+{% block content %}
+<div class="filter-section">
+    <h5><i class="fas fa-filter"></i> Filtros</h5>
+    <form method="GET" action="{{ url_for('heatmap') }}">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="type" class="form-label">Tipo de Incidente</label>
+                <select class="form-select" id="type" name="type">
+                    <option value="">Todos los tipos</option>
+                    {% for type in incident_types %}
+                    <option value="{{ type }}" {% if type == request.args.get('type') %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="district" class="form-label">Distrito</label>
+                <select class="form-select" id="district" name="district">
+                    <option value="">Todos los distritos</option>
+                    {% for district in districts %}
+                    <option value="{{ district }}" {% if district == request.args.get('district') %}selected{% endif %}>{{ district }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="start_date" class="form-label">Fecha Inicio</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+            </div>
+            <div class="col-md-2">
+                <label for="end_date" class="form-label">Fecha Fin</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
+                <a href="{{ url_for('heatmap') }}" class="btn btn-outline-secondary w-100 mt-2">Limpiar</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marked-alt"></i> Mapa de Calor de Inseguridad en Lima y Callao</h5>
+            </div>
+            <div class="card-body">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-table"></i> Detalle de Incidentes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Distrito</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Severidad</th>
+                                <th>Fecha</th>
+                                <th>Fuente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in incidents %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ incident.district }}</td>
+                                <td>
+                                    {% if incident.incident_type == 'Robo' %}
+                                        <span class="badge bg-danger">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Asalto' %}
+                                        <span class="badge bg-warning text-dark">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Hurto' %}
+                                        <span class="badge bg-info text-dark">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Riña' %}
+                                        <span class="badge bg-secondary">{{ incident.incident_type }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ incident.incident_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ incident.description | truncate(60) }}</td>
+                                <td>
+                                    {% for i in range(1, 6) %}
+                                        <small class="text-muted">{% if i <= incident.severity %}★{% else %}☆{% endif %}</small>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ incident.date_reported.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ incident.source or 'No especificada' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map
+        const map = L.map('map').setView([-12.0464, -77.0428], 11); // Centered on Lima
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Heatmap data
+        const heatData = {{ heatmap_data | safe }};
+
+        // Convert to format needed for Leaflet.heat
+        const heatPoints = heatData.map(point => [point.lat, point.lng, point.intensity]);
+
+        // Add heatmap layer
+        const heatLayer = L.heatLayer(heatPoints, {
+            radius: 25,
+            blur: 15,
+            maxZoom: 17,
+            gradient: {
+                0.4: 'blue',
+                0.6: 'cyan',
+                0.7: 'lime',
+                0.8: 'yellow',
+                1.0: 'red'
+            }
+        }).addTo(map);
+
+        // Add individual markers for better detail
+        heatData.forEach(point => {
+            const marker = L.circleMarker([point.lat, point.lng], {
+                radius: 5,
+                fillColor: getColorBySeverity(point.intensity),
+                color: '#000',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <b>Distrito:</b> ${point.district}<br>
+                <b>Tipo:</b> ${point.type}<br>
+                <b>Descripción:</b> ${point.description}<br>
+                <b>Fecha:</b> ${point.date}<br>
+                <b>Severidad:</b> ${'★'.repeat(point.intensity)}${'☆'.repeat(5 - point.intensity)}
+            `);
+        });
+
+        function getColorBySeverity(severity) {
+            switch(severity) {
+                case 5: return '#dc3545'; // red
+                case 4: return '#fd7e14'; // orange
+                case 3: return '#ffc107'; // yellow
+                case 2: return '#198754'; // green
+                default: return '#0d6efd'; // blue
+            }
+        }
+
+        // Add legend
+        const legend = L.control({position: 'bottomright'});
+        legend.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            const grades = [1, 2, 3, 4, 5];
+            const labels = [];
+            let from, to;
+
+            for (let i = 0; i < grades.length; i++) {
+                from = grades[i];
+                to = grades[i + 1];
+
+                const color = getColorBySeverity(from + 1);
+                const labelItem = document.createElement('div');
+                const colorBox = document.createElement('i');
+                colorBox.style.background = color;
+                const text = document.createTextNode(' ' + from + (to ? '&ndash;' + to : '+'));
+                labelItem.appendChild(colorBox);
+                labelItem.appendChild(text);
+                labels.push(labelItem.outerHTML);
+            }
+
+            div.innerHTML = '<strong>Severidad</strong><br>' + labels.join('<br>');
+            return div;
+        };
+
+        legend.addTo(map);
+    });
+</script>
+{% endblock %}

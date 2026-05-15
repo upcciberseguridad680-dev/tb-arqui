@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Street Web{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number">{{ total_incidents }}</div>
+                <div class="stat-label">Total Incidentos</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number">{{ recent_incidents|length }}</div>
+                <div class="stat-label">Incidentes Recientes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number">
+                    {% set types = incident_types|length %}
+                    {{ types }}
+                </div>
+                <div class="stat-label">Tipos de Incidentes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number">
+                    {% set districts = districts|length %}
+                    {{ districts }}
+                </div>
+                <div class="stat-label">Distritos Afectados</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list-ul"></i> Incidentes Recientes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Distrito</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Severidad</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in recent_incidents %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ incident.district }}</td>
+                                <td>
+                                    {% if incident.incident_type == 'Robo' %}
+                                        <span class="badge bg-danger">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Asalto' %}
+                                        <span class="badge bg-warning text-dark">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Hurto' %}
+                                        <span class="badge bg-info text-dark">{{ incident.incident_type }}</span>
+                                    {% elif incident.incident_type == 'Riña' %}
+                                        <span class="badge bg-secondary">{{ incident.incident_type }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ incident.incident_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ incident.description | truncate(50) }}</td>
+                                <td>
+                                    {% for i in range(1, 6) %}
+                                        <small class="text-muted">{% if i <= incident.severity %}★{% else %}☆{% endif %}</small>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ incident.date_reported.strftime('%d/%m/%Y %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-pie"></i> Distribución por Tipo</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="py-5">
+                    <i class="fas fa-chart-pie fa-3x mb-3 text-muted"></i>
+                    <p class="text-muted">Gráfico de distribución por tipo de incidente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-map-marked-alt"></i> Ver Mapa de Calor Completo</h5>
+            </div>
+            <div class="card-body text-center">
+                <a href="{{ url_for('heatmap') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-map"></i> Ir al Mapa de Calor
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
