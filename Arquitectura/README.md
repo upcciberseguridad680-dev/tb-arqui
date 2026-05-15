@@ -50,7 +50,7 @@ Una aplicación web para visualizar y monitorear datos de inseguridad ciudadana 
 
 4. Ejecutar la aplicación:
    ```bash
-   python app.py
+   python run.py
    ```
 
 5. Acceder en: http://localhost:5000
@@ -75,7 +75,7 @@ Una aplicación web para visualizar y monitorear datos de inseguridad ciudadana 
 4. Configurar:
    - Root Directory: `Arquitectura`
    - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn --bind 0.0.0.0:$PORT app:app`
+   - Start Command: `gunicorn --bind 0.0.0.0:$PORT run:app`
    - Environment Variables:
      - `SECRET_KEY`: Tu clave secreta segura
      - `DATABASE_URL`: URL de tu base de datos PostgreSQL en Render

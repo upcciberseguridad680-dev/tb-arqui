@@ -34,7 +34,7 @@ jobs:
       # 4. Ejecutar tests básicos (verificar que la aplicación se puede importar)
       - name: Verificar importación de la aplicación
         run: |
-          python -c "from app import app; print('Aplicación importada correctamente')"
+          python -c "from run import app; print('Aplicación importada correctamente')"
 
       # 5. Análisis SAST con Bandit
       - name: 🔒 Análisis de seguridad (Bandit)

@@ -5,7 +5,7 @@
 {% block content %}
 <div class="filter-section">
     <h5><i class="fas fa-filter"></i> Filtros</h5>
-    <form method="GET" action="{{ url_for('heatmap') }}">
+    <form method="GET" action="{{ url_for('map.heatmap') }}">
         <div class="row g-3">
             <div class="col-md-3">
                 <label for="type" class="form-label">Tipo de Incidente</label>
@@ -35,7 +35,7 @@
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">Aplicar Filtros</button>
-                <a href="{{ url_for('heatmap') }}" class="btn btn-outline-secondary w-100 mt-2">Limpiar</a>
+                <a href="{{ url_for('map.heatmap') }}" class="btn btn-outline-secondary w-100 mt-2">Limpiar</a>
             </div>
         </div>
     </form>
@@ -118,8 +118,10 @@
         const map = L.map('map').setView([-12.0464, -77.0428], 11); // Centered on Lima
 
         // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(map);
 
         // Heatmap data
