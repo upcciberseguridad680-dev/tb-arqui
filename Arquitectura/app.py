@@ -12,6 +12,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+@app.context_processor
+def inject_template_helpers():
+    return {'now': datetime.utcnow}
+
 # User model for login system
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -122,6 +126,13 @@ def heatmap():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
+    # Get incident types and districts for filters
+    incident_types = db.session.query(Incident.incident_type.distinct()).all()
+    incident_types = [t[0] for t in incident_types]
+
+    districts = db.session.query(Incident.district.distinct()).all()
+    districts = [d[0] for d in districts]
+
     # Get filter parameters
     incident_type = request.args.get('type', '')
     district = request.args.get('district', '')
@@ -165,7 +176,9 @@ def heatmap():
 
     return render_template('heatmap.html',
                          incidents=incidents,
-                         heatmap_data=json.dumps(heatmap_data))
+                         heatmap_data=json.dumps(heatmap_data),
+                         incident_types=incident_types,
+                         districts=districts)
 
 @app.route('/api/incidents')
 def api_incidents():
@@ -264,10 +277,11 @@ def init_db():
 
     db.session.commit()
 
-# Create tables and add sample data on first request
-@app.before_first_request
 def initialize():
     init_db()
+
+with app.app_context():
+    initialize()
 
 # Health check endpoint for smoke tests
 @app.route('/health')
@@ -275,4 +289,10 @@ def health():
     return jsonify({"status": "healthy", "timestamp": datetime.utcnow().isoformat()}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)),
+        debug=debug_mode,
+        use_reloader=debug_mode,
+    )

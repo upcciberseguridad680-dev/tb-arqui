@@ -10,6 +10,9 @@ jobs:
   test:
     name: Tests + Análisis de Seguridad
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Arquitectura
 
     steps:
       # 1. Descargar el código

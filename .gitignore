@@ -137,7 +137,6 @@ logs
 Thumbs.db
 
 # Docker
-.dockerignore
 
 # Environment variables
 .env

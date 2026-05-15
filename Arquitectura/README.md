@@ -34,13 +34,13 @@ Una aplicación web para visualizar y monitorear datos de inseguridad ciudadana 
 1. Clonar el repositorio:
    ```bash
    git clone <URL_DEL_REPOSITORIO>
-   cd streetweb
+   cd streetweb/Arquitectura
    ```
 
 2. Crear entorno virtual:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate  # En Windows: .venv\Scripts\activate
    ```
 
 3. Instalar dependencias:
@@ -73,6 +73,7 @@ Una aplicación web para visualizar y monitorear datos de inseguridad ciudadana 
 2. Conectar tu repositorio de GitHub
 3. Crear un nuevo "Web Service"
 4. Configurar:
+   - Root Directory: `Arquitectura`
    - Build Command: `pip install -r requirements.txt`
    - Start Command: `gunicorn --bind 0.0.0.0:$PORT app:app`
    - Environment Variables:
