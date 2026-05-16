@@ -68,6 +68,13 @@ Una aplicación web para visualizar y monitorear datos de inseguridad ciudadana 
    docker run -p 5000:5000 streetweb
    ```
 
+## Enlaces de Acceso
+
+| Ambiente | Frontend (Interfaz) | Backend (Servidor/API) |
+| :--- | :--- | :--- |
+| **Desarrollo** | [Link Desarrollo](#) | [Link Desarrollo](#) |
+| **Producción** | [Link Producción](#) | [Link Producción](#) |
+
 ## Despliegue en Render
 
 El repositorio incluye un `render.yaml` en la raíz para crear el servicio desde Render Blueprint.
